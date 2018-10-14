@@ -20,3 +20,5 @@ go install
 # 运行(windows: go-bilibili-tools.exe)
 ./go-bilibili-tools
 ```
+
+> 第一次使用会要求输入账号密码， 登陆成功后会保存 cookie 到本地
