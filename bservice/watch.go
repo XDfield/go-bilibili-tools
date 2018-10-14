@@ -23,6 +23,7 @@ func (b *BService) WatchService(wg *sync.WaitGroup) {
 			fmt.Printf("观看视频失败: %v\n", err)
 			continue
 		}
+		fmt.Println("观看任务完成, 六小时后继续")
 
 		WaitHours(6)
 	}
@@ -55,7 +56,7 @@ func (b *BService) watch(aid, cid string) error {
 		return err
 	}
 	if bresp.Code == 0 {
-		fmt.Printf("观看视频完成 aid: %v cid: %v\n", aid, cid)
+		fmt.Printf("成功观看视频 aid: %v cid: %v\n", aid, cid)
 	} else {
 		fmt.Printf("观看视频失败 aid: %v cid: %v\n", aid, cid)
 	}

@@ -20,7 +20,7 @@ func GetCurrentTime() string {
 
 // WaitHours 等待 h 小时
 func WaitHours(h int) {
-	time.Sleep(time.Duration(h) * time.Second)
+	time.Sleep(time.Duration(h*3600) * time.Second)
 }
 
 // Float64ToString float64转字符串

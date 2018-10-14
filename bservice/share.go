@@ -18,7 +18,7 @@ func (b *BService) ShareService(wg *sync.WaitGroup) {
 			fmt.Printf("分享视频失败: %v\n", err)
 			continue
 		} else {
-			fmt.Println("分享任务完成")
+			fmt.Println("分享任务完成, 六小时后继续")
 		}
 
 		WaitHours(6)

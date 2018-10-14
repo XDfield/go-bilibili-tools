@@ -18,6 +18,7 @@ func main() {
 	}
 	fmt.Println("登陆成功!")
 	// 启动服务
+	fmt.Println("启动服务: 分享 观看 投币")
 	wg := sync.WaitGroup{}
 	wg.Add(3)
 	go bservice.ShareService(&wg) // 分享

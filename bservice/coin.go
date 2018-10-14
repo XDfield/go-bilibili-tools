@@ -15,11 +15,12 @@ func (b *BService) CoinService(wg *sync.WaitGroup) {
 			continue
 		}
 		for ; coinExp < 50; coinExp += 10 {
-			for err := b.giveCoin(); err == nil; {
+			for err := b.giveCoin(); err != nil; {
 				fmt.Println("投币失败...")
 			}
 		}
-		fmt.Println("投币任务完成")
+		fmt.Println("今日投币任务完成, 二十四小时后继续")
+
 		WaitHours(24)
 	}
 }

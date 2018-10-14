@@ -16,7 +16,7 @@
 go get github.com/XDfield/go-bilibili-tools
 # 编译
 cd go-bilibili-tools/
-go build
+go install
 # 运行(windows: go-bilibili-tools.exe)
 ./go-bilibili-tools
 ```
