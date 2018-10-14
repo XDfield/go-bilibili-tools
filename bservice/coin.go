@@ -15,8 +15,22 @@ func (b *BService) CoinService(wg *sync.WaitGroup) {
 			continue
 		}
 		for ; coinExp < 50; coinExp += 10 {
-			for err := b.giveCoin(); err != nil; {
-				fmt.Println("投币失败...")
+			for {
+				aid, err := b.getRandAid()
+				if err != nil {
+					fmt.Printf("获取aid失败: %v\n", err)
+					continue
+				}
+				if err := b.giveCoin(aid); err != nil {
+					fmt.Printf("投币失败: %v\n", err)
+				}
+				view, err := b.getView(aid)
+				if err != nil {
+					fmt.Printf("获取视频信息失败: av%v\n", aid)
+				} else {
+					fmt.Printf("成功投币: (av%v) %v\n", aid, view.Data.Title)
+					break
+				}
 			}
 		}
 		fmt.Println("今日投币任务完成, 二十四小时后继续")
@@ -25,11 +39,7 @@ func (b *BService) CoinService(wg *sync.WaitGroup) {
 	}
 }
 
-func (b *BService) giveCoin() error {
-	aid, err := b.getRandAid()
-	if err != nil {
-		return err
-	}
+func (b *BService) giveCoin(aid string) error {
 	headers := b.loginInfo.Headers
 	headers["Referer"] = "https://www.bilibili.com/video/av" + aid
 	data := map[string]string{
@@ -42,16 +52,5 @@ func (b *BService) giveCoin() error {
 	if err != nil {
 		return err
 	}
-	var bresp struct {
-		Code int `json:"code"`
-	}
-	if err := JSONProc(resp, &bresp); err != nil {
-		return err
-	}
-	if bresp.Code != 0 {
-		return b.giveCoin()
-	}
-
-	fmt.Printf("投币成功: aid: %v\n", aid)
-	return nil
+	return CheckCode(resp)
 }

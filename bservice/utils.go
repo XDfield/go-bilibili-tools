@@ -5,22 +5,46 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
+type stateStruct struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 // GetCurrentTime 返回时间戳
 func GetCurrentTime() string {
 	return strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
 }
 
+// CheckCode 检查状态响应
+func CheckCode(resp *http.Response) error {
+	state := stateStruct{}
+	if err := JSONProc(resp, &state); err != nil {
+		return err
+	}
+	if state.Code != 0 {
+		return errors.New(state.Message)
+	}
+	return nil
+}
+
 // WaitHours 等待 h 小时
 func WaitHours(h int) {
-	time.Sleep(time.Duration(h*3600) * time.Second)
+	time.Sleep(time.Duration(h) * time.Hour)
+}
+
+// WaitSeconds 等待 s 秒
+func WaitSeconds(s int) {
+	time.Sleep(time.Duration(s) * time.Second)
 }
 
 // Float64ToString float64转字符串

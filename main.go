@@ -20,10 +20,11 @@ func main() {
 	// 启动服务
 	fmt.Println("启动服务: 分享 观看 投币")
 	wg := sync.WaitGroup{}
-	wg.Add(3)
-	go bservice.ShareService(&wg) // 分享
-	go bservice.WatchService(&wg) // 观看视频
-	go bservice.CoinService(&wg)  // 投币
+	wg.Add(4)
+	go bservice.LoadVideoInfo(&wg) // 半天读取一次视频列表
+	go bservice.ShareService(&wg)  // 分享
+	go bservice.WatchService(&wg)  // 观看视频
+	go bservice.CoinService(&wg)   // 投币
 	wg.Wait()
 	fmt.Println("退出")
 }

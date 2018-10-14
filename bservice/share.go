@@ -14,22 +14,30 @@ type failState struct {
 func (b *BService) ShareService(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
-		if err := b.share(); err != nil {
+		aid, err := b.getRandAid()
+		if err != nil {
+			fmt.Printf("%v", err)
+			continue
+		}
+		if err := b.share(aid); err != nil {
 			fmt.Printf("分享视频失败: %v\n", err)
 			continue
 		} else {
-			fmt.Println("分享任务完成, 六小时后继续")
+			view, err := b.getView(aid)
+			if err != nil {
+				fmt.Printf("获取视频信息失败: av%v\n", aid)
+			} else {
+				fmt.Printf("成功分享视频: (av%v) %v\n", aid, view.Data.Title)
+			}
+
 		}
+		fmt.Println("分享任务完成, 六小时后继续")
 
 		WaitHours(6)
 	}
 }
 
-func (b *BService) share() error {
-	aid, err := b.getRandAid()
-	if err != nil {
-		return err
-	}
+func (b *BService) share(aid string) error {
 	headers := map[string]string{
 		"User-Agent": "Mozilla/5.0 BiliDroid/5.26.3 (bbcallen@gmail.com)",
 		"Host":       "app.bilibili.com",
@@ -49,17 +57,5 @@ func (b *BService) share() error {
 	if err != nil {
 		return err
 	}
-	var bresp struct {
-		Code int `json:"code"`
-	}
-	if err := JSONProc(resp, &bresp); err != nil {
-		fmt.Printf("%v", err)
-		return err
-	}
-	if bresp.Code == 0 {
-		fmt.Printf("成功分享 aid: %v\n", aid)
-	} else {
-		fmt.Printf("分享失败 aid: %v\n", aid)
-	}
-	return nil
+	return CheckCode(resp)
 }
