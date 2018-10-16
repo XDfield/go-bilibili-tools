@@ -53,7 +53,7 @@ func (b *BService) share(aid string) error {
 		"platform":   "android",
 		"ts":         GetCurrentTime(),
 	}
-	resp, err := b.POST(apiURL["share"], data, headers)
+	resp, err := b.POST(b.urls.Share, data, headers)
 	if err != nil {
 		return err
 	}

@@ -70,7 +70,7 @@ func (b *BService) getView(aid string) (*videoView, error) {
 	params := map[string]string{
 		"aid": aid,
 	}
-	resp, err := b.GET(apiURL["view"], params, nil)
+	resp, err := b.GET(b.urls.VideoView, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (b *BService) getCurrentUser() error {
 	}
 	headers := b.loginInfo.Headers
 	headers["Referer"] = "https://space.bilibili.com/3213445" + b.loginInfo.UID
-	resp, err := b.POST(apiURL["getInfo"], data, headers)
+	resp, err := b.POST(b.urls.UserInfo, data, headers)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (b *BService) getCurrentUser() error {
 func (b *BService) queryReward() ([]bool, int, error) {
 	headers := b.loginInfo.Headers
 	headers["Referer"] = "https://account.bilibili.com/account/home"
-	resp, err := b.GET(apiURL["reward"], nil, headers)
+	resp, err := b.GET(b.urls.Reward, nil, headers)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -125,6 +125,23 @@ func (b *BService) queryReward() ([]bool, int, error) {
 	return []bool{bresp.Data.Login, bresp.Data.WatchAv, bresp.Data.ShareAv}, bresp.Data.CoinsAv, nil
 }
 
+func (b *BService) getUnreadCount() (int, error) {
+	resp, err := b.GET(b.urls.UnreadCount, nil, b.loginInfo.Headers)
+	if err != nil {
+		return 0, err
+	}
+	var bresp struct {
+		Code int `json:"code"`
+		Data struct {
+			All int `json:"all"`
+		} `json:"data"`
+	}
+	if err := JSONProc(resp, &bresp); err != nil {
+		return 0, err
+	}
+	return bresp.Data.All, nil
+}
+
 func (b *BService) getAttention() ([]float64, error) {
 	attentionList := make([]float64, 0, 50)
 	params := map[string]string{
@@ -132,7 +149,7 @@ func (b *BService) getAttention() ([]float64, error) {
 		"ps":    "50",
 		"order": "desc",
 	}
-	resp, err := b.GET(apiURL["following"], params, b.loginInfo.Headers)
+	resp, err := b.GET(b.urls.Following, params, b.loginInfo.Headers)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +181,7 @@ func (b *BService) getSubmitVideo() ([]float64, error) {
 			"pagesize": "100",
 			"tid":      "0",
 		}
-		resp, err := b.GET(apiURL["getSubmitVideos"], params, nil)
+		resp, err := b.GET(b.urls.SubmitVideos, params, nil)
 		if err != nil {
 			b.logger.Printf("%v", err)
 			continue

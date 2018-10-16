@@ -17,11 +17,12 @@ func main() {
 	}
 	// 启动服务
 	wg := sync.WaitGroup{}
-	wg.Add(4)
-	go bservice.LoadVideoInfo(&wg) // 半天读取一次视频列表
-	go bservice.ShareService(&wg)  // 分享
-	go bservice.WatchService(&wg)  // 观看视频
-	go bservice.CoinService(&wg)   // 投币
+	wg.Add(5)
+	go bservice.LoadVideoInfo(&wg)  // 半天读取一次视频列表
+	go bservice.ShareService(&wg)   // 分享
+	go bservice.WatchService(&wg)   // 观看视频
+	go bservice.CoinService(&wg)    // 投币
+	go bservice.DynamicService(&wg) // 关注推送
 	wg.Wait()
 	fmt.Println("退出")
 }

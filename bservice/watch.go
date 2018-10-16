@@ -46,7 +46,7 @@ func (b *BService) watch(aid, cid string) error {
 		"dt":          "2",
 		"play_type":   "1",
 	}
-	resp, err := b.POST(apiURL["watchAv"], data, headers)
+	resp, err := b.POST(b.urls.WatchAv, data, headers)
 	if err != nil {
 		return err
 	}

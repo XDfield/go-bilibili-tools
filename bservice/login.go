@@ -65,7 +65,7 @@ func (b *BService) getLoginInfo(relogin bool) error {
 			"password": encryptPw,
 			"username": b.loginInfo.Username,
 		}
-		resp, err := b.POST(apiURL["login"], params, nil)
+		resp, err := b.POST(b.urls.Login, params, nil)
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func (b *BService) getEncryptPw(data []byte) (string, error) {
 	params := map[string]string{
 		"appkey": appKey,
 	}
-	resp, err := b.POST(apiURL["getKey"], params, nil)
+	resp, err := b.POST(b.urls.EncryptKey, params, nil)
 	if err != nil {
 		return "", err
 	}
