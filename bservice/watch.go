@@ -1,31 +1,31 @@
 package bservice
 
 import (
-	"fmt"
 	"sync"
 )
 
 // WatchService 观看服务
 func (b *BService) WatchService(wg *sync.WaitGroup) {
+	b.logger.Println("启动视频观看服务")
 	defer wg.Done()
 	for {
 		aid, err := b.getRandAid()
 		if err != nil {
-			fmt.Printf("获取aid失败: %v\n", err)
+			b.logger.Printf("获取aid失败: %v\n", err)
 			continue
 		}
 		view, err := b.getView(aid)
 		if err != nil {
-			fmt.Printf("获取视频信息失败: %v\n", err)
+			b.logger.Printf("获取视频信息失败: %v\n", err)
 			continue
 		}
 		if err := b.watch(aid, string(view.Data.Cid)); err != nil {
-			fmt.Printf("观看视频失败: %v\n", err)
+			b.logger.Printf("观看视频失败: %v\n", err)
 			continue
 		}
-		fmt.Printf("成功观看视频: (av%v) %v\n", aid, view.Data.Title)
+		b.logger.Printf("成功观看视频: (av%v) %v\n", aid, view.Data.Title)
 
-		fmt.Println("观看任务完成, 六小时后继续")
+		b.logger.Println("观看任务完成, 六小时后继续")
 
 		WaitHours(6)
 	}

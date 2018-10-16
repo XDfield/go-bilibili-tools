@@ -1,7 +1,6 @@
 package bservice
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -12,26 +11,27 @@ type failState struct {
 
 // ShareService 视频分享服务
 func (b *BService) ShareService(wg *sync.WaitGroup) {
+	b.logger.Println("启动视频分享服务")
 	defer wg.Done()
 	for {
 		aid, err := b.getRandAid()
 		if err != nil {
-			fmt.Printf("%v", err)
+			b.logger.Printf("%v", err)
 			continue
 		}
 		if err := b.share(aid); err != nil {
-			fmt.Printf("分享视频失败: %v\n", err)
+			b.logger.Printf("分享视频失败: %v\n", err)
 			continue
 		} else {
 			view, err := b.getView(aid)
 			if err != nil {
-				fmt.Printf("获取视频信息失败: av%v\n", aid)
+				b.logger.Printf("获取视频信息失败: av%v\n", aid)
 			} else {
-				fmt.Printf("成功分享视频: (av%v) %v\n", aid, view.Data.Title)
+				b.logger.Printf("成功分享视频: (av%v) %v\n", aid, view.Data.Title)
 			}
 
 		}
-		fmt.Println("分享任务完成, 六小时后继续")
+		b.logger.Println("分享任务完成, 六小时后继续")
 
 		WaitHours(6)
 	}

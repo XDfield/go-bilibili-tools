@@ -11,14 +11,11 @@ func main() {
 	bservice := bservice.BService{}
 	bservice.Init()
 	// 登陆
-	err := bservice.Login(false)
-	if err != nil {
+	if err := bservice.Login(false); err != nil {
 		fmt.Printf("%v", err)
 		return
 	}
-	fmt.Println("登陆成功!")
 	// 启动服务
-	fmt.Println("启动服务: 分享 观看 投币")
 	wg := sync.WaitGroup{}
 	wg.Add(4)
 	go bservice.LoadVideoInfo(&wg) // 半天读取一次视频列表

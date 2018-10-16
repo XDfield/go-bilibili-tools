@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +24,46 @@ type stateStruct struct {
 // GetCurrentTime 返回时间戳
 func GetCurrentTime() string {
 	return strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
+}
+
+// ParseCookies 解析cookie响应
+func ParseCookies(cookieData *CookieData) LoginInfo {
+	var loginInfo LoginInfo
+	var cookieFormat string
+	for _, cookie := range cookieData.CookieInfo.Cookies {
+		cookieFormat += cookie.Name + "=" + cookie.Value + ";"
+		if cookie.Name == "bili_jct" {
+			loginInfo.Csrf = cookie.Value
+		}
+		if cookie.Name == "DedeUserID" {
+			loginInfo.UID = cookie.Value
+		}
+	}
+	loginInfo.Cookies = cookieFormat
+	loginInfo.Headers = map[string]string{
+		"Host":            "api.bilibili.com",
+		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+		"Cookie":          cookieFormat,
+	}
+	loginInfo.AccessKey = cookieData.TokenInfo.AccessToken
+	return loginInfo
+}
+
+// DeParseCookies 将本地读取的cookie内容转为loginInfo
+func DeParseCookies(cookieInfo map[string]string) LoginInfo {
+	var loginInfo LoginInfo
+	loginInfo.Username = cookieInfo["username"]
+	loginInfo.Password = cookieInfo["password"]
+	loginInfo.Cookies = cookieInfo["cookies"]
+	loginInfo.Headers = map[string]string{
+		"Host":            "api.bilibili.com",
+		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+		"Cookie":          cookieInfo["cookies"],
+	}
+	loginInfo.AccessKey = cookieInfo["accessKey"]
+	loginInfo.Csrf = regexp.MustCompile(`bili_jct=(.*?);`).FindAllStringSubmatch(cookieInfo["cookies"], 1)[0][1]
+	loginInfo.UID = regexp.MustCompile(`DedeUserID=(.*?);`).FindAllStringSubmatch(cookieInfo["cookies"], 1)[0][1]
+	return loginInfo
 }
 
 // CheckCode 检查状态响应
@@ -61,7 +102,7 @@ func RsaEncrypt(data []byte, publickey string) (encrypt []byte) {
 }
 
 // SaveCookieToFile 保存cookie到本地文件
-func SaveCookieToFile(loginInfo LoginInfo, filename string) error {
+func SaveCookieToFile(loginInfo *LoginInfo, filename string) error {
 	buffer := make([]string, 0, 4)
 	buffer = append(buffer, "username: "+loginInfo.Username)
 	buffer = append(buffer, "password: "+loginInfo.Password)

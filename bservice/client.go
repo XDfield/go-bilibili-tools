@@ -15,13 +15,6 @@ const (
 	encryptSecret = "560c52ccd288fed045859ed18bffd973"
 )
 
-// BResponse 响应结构
-type BResponse struct {
-	Ts   int                    `json:"ts"`
-	Code int                    `json:"code"`
-	Data map[string]interface{} `json:"data"`
-}
-
 // GET get请求
 func (b *BService) GET(url string, params map[string]string, headers map[string]string) (*http.Response, error) {
 	return b.open(url, "GET", encodeSign(params, encryptSecret), headers)

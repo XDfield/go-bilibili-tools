@@ -4,97 +4,91 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"regexp"
 )
+
+// LoginInfo 登陆信息
+type LoginInfo struct {
+	Username  string
+	Password  string
+	Csrf      string
+	UID       string
+	Cookies   string
+	Headers   map[string]string
+	AccessKey string
+}
+
+// CookieData cookie信息
+type CookieData struct {
+	TokenInfo struct {
+		AccessToken string `json:"access_token"`
+	} `json:"token_info"`
+	CookieInfo struct {
+		Cookies []struct {
+			Name  string `json:"name"`
+			Value string `json:"value"`
+		} `json:"cookies"`
+	} `json:"cookie_info"`
+}
 
 // Login 登陆
 func (b *BService) Login(relogin bool) error {
-	if !relogin {
-		if err := b.loadCookie(); err == nil {
-			fmt.Println("读取本地cookie成功")
-			return nil
-		}
+	if err := b.getLoginInfo(relogin); err != nil {
+		return err
 	}
 
-	if b.loginInfo.Username == "" {
+	if err := SaveCookieToFile(&b.loginInfo, cookieFileName); err != nil {
+		b.logger.Println("本地cookie保存失败")
+	}
+
+	if err := b.getCurrentUser(); err != nil {
+		return errors.New("获取用户信息失败, 请检查账号密码是否输入正确")
+	}
+
+	b.logger.Printf("你好呀 %s\n", b.user.Name)
+
+	return nil
+}
+
+func (b *BService) getLoginInfo(relogin bool) error {
+	if relogin {
 		fmt.Print("输入账号: ")
 		fmt.Scan(&b.loginInfo.Username)
 		fmt.Print("输入密码: ")
 		fmt.Scan(&b.loginInfo.Password)
-	}
 
-	encryptPw, err := b.getEncryptPw([]byte(b.loginInfo.Password))
-	if err != nil {
-		return err
-	}
-	params := map[string]string{
-		"appkey":   appKey,
-		"password": encryptPw,
-		"username": b.loginInfo.Username,
-	}
-	resp, err := b.POST(apiURL["login"], params, nil)
-	if err != nil {
-		return err
-	}
-	bresp := BResponse{}
-	if err := JSONProc(resp, &bresp); err != nil {
-		return err
-	}
-	if bresp.Data == nil {
-		return errors.New("登陆失败, 请检查账号密码是否输入正确")
-	}
-	err = b.saveCookie(bresp.Data)
-	if err != nil {
-		fmt.Println("本地cookie保存失败")
-	}
-	return nil
-}
-
-func (b *BService) saveCookie(data map[string]interface{}) error {
-	cookies := data["cookie_info"].(map[string]interface{})["cookies"].([]interface{})
-	var cookieFormat, name, value string
-	var cookie map[string]interface{}
-	for i := 0; i < len(cookies); i++ {
-		cookie = cookies[i].(map[string]interface{})
-		name = cookie["name"].(string)
-		value = cookie["value"].(string)
-		cookieFormat += name + "=" + value + ";"
-		if name == "bili_jct" {
-			b.loginInfo.Csrf = value
+		encryptPw, err := b.getEncryptPw([]byte(b.loginInfo.Password))
+		if err != nil {
+			return err
 		}
-		if name == "DedeUserID" {
-			b.loginInfo.UID = value
+		params := map[string]string{
+			"appkey":   appKey,
+			"password": encryptPw,
+			"username": b.loginInfo.Username,
 		}
+		resp, err := b.POST(apiURL["login"], params, nil)
+		if err != nil {
+			return err
+		}
+		var bresp struct {
+			Data CookieData `json:"data"`
+		}
+		if err := JSONProc(resp, &bresp); err != nil {
+			return errors.New("登陆失败, 请检查账号密码是否输入正确")
+		}
+		loginInfo := ParseCookies(&bresp.Data)
+		b.loginInfo.AccessKey = loginInfo.AccessKey
+		b.loginInfo.Csrf = loginInfo.Csrf
+		b.loginInfo.Cookies = loginInfo.Cookies
+		b.loginInfo.Headers = loginInfo.Headers
+		b.loginInfo.UID = loginInfo.UID
+	} else {
+		cookieInfo, err := LoadCookieFromFile(cookieFileName)
+		if err != nil {
+			return b.getLoginInfo(true)
+		}
+		b.loginInfo = DeParseCookies(cookieInfo)
+		b.logger.Println("读取本地cookie成功")
 	}
-	b.loginInfo.Cookies = cookieFormat
-	b.loginInfo.Headers = map[string]string{
-		"Host":            "api.bilibili.com",
-		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-		"Cookie":          cookieFormat,
-	}
-	b.loginInfo.AccessKey = data["token_info"].(map[string]interface{})["access_token"].(string)
-	if err := SaveCookieToFile(b.loginInfo, cookieFileName); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *BService) loadCookie() error {
-	cookieInfo, err := LoadCookieFromFile(cookieFileName)
-	if err != nil {
-		return err
-	}
-	b.loginInfo.Username = cookieInfo["username"]
-	b.loginInfo.Password = cookieInfo["password"]
-	b.loginInfo.Cookies = cookieInfo["cookies"]
-	b.loginInfo.Headers = map[string]string{
-		"Host":            "api.bilibili.com",
-		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-		"Cookie":          cookieInfo["cookies"],
-	}
-	b.loginInfo.AccessKey = cookieInfo["accessKey"]
-	b.loginInfo.Csrf = regexp.MustCompile(`bili_jct=(.*?);`).FindAllStringSubmatch(cookieInfo["cookies"], 1)[0][1]
-	b.loginInfo.UID = regexp.MustCompile(`DedeUserID=(.*?);`).FindAllStringSubmatch(cookieInfo["cookies"], 1)[0][1]
 	return nil
 }
 
@@ -106,12 +100,17 @@ func (b *BService) getEncryptPw(data []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	bresp := BResponse{}
+	var bresp struct {
+		Data struct {
+			Hash string `json:"hash"`
+			Key  string `json:"key"`
+		} `json:"data"`
+	}
 	if err := JSONProc(resp, &bresp); err != nil {
 		return "", err
 	}
-	hash := bresp.Data["hash"].(string)
-	key := bresp.Data["key"].(string)
+	hash := bresp.Data.Hash
+	key := bresp.Data.Key
 	encrypt := RsaEncrypt(append([]byte(hash), data...), key)
 	return base64.URLEncoding.EncodeToString(encrypt), nil
 }

@@ -1,7 +1,9 @@
 package bservice
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"sync"
 )
 
@@ -22,6 +24,7 @@ var apiURL = map[string]string{
 	"reward":          "https://account.bilibili.com/home/reward",
 	"giveCoin":        "https://api.bilibili.com/x/web-interface/coin/add",
 	"view":            "https://api.bilibili.com/x/web-interface/view",
+	"getInfo":         "https://space.bilibili.com/ajax/member/GetInfo",
 }
 
 // BService 基础的服务
@@ -29,22 +32,14 @@ type BService struct {
 	client    *http.Client
 	loginInfo LoginInfo
 	videoList []float64
-}
-
-// LoginInfo 登陆信息
-type LoginInfo struct {
-	Username  string
-	Password  string
-	Csrf      string
-	UID       string
-	Cookies   string
-	Headers   map[string]string
-	AccessKey string
+	logger    *log.Logger
+	user      UserInfo
 }
 
 // Init 初始化服务
 func (b *BService) Init() {
 	b.client = &http.Client{}
+	b.logger = log.New(os.Stderr, "[BiliBili-Tools] ", log.LstdFlags)
 }
 
 // LoadVideoInfo 读取视频列表

@@ -2,7 +2,6 @@ package bservice
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	"strconv"
 )
@@ -31,6 +30,25 @@ type videoView struct {
 	}
 }
 
+// UserInfo 用户信息
+type UserInfo struct {
+	Birthday  string `json:"birthday"`
+	Im9Sign   string `json:"im9_sign"`
+	LevelInfo struct {
+		CurrentLevel int `json:"current_level"`
+	} `json:"level_info"`
+	MID     int    `json:"mid"`
+	Name    string `json:"name"`
+	Rank    int    `json:"rank"`
+	RegTime int    `json:"regtime"`
+	Sex     string `json:"sex"`
+	Sign    string `json:"sign"`
+	Vip     struct {
+		VipStatus int `json:"vipStatus"`
+		VipType   int `json:"vipType"`
+	} `json:"vip"`
+}
+
 func (b *BService) getRandAid() (string, error) {
 	videoList := b.videoList
 	for ; len(videoList) == 0; videoList = b.videoList {
@@ -49,16 +67,41 @@ func (b *BService) loadVideoList() {
 }
 
 func (b *BService) getView(aid string) (*videoView, error) {
-	resp, err := b.GET(apiURL["view"], nil, nil)
+	params := map[string]string{
+		"aid": aid,
+	}
+	resp, err := b.GET(apiURL["view"], params, nil)
 	if err != nil {
 		return nil, err
 	}
 	view := videoView{}
 	if err := JSONProc(resp, &view); err != nil {
-		fmt.Printf("%v", err)
+		b.logger.Printf("%v", err)
 		return nil, err
 	}
 	return &view, nil
+}
+
+func (b *BService) getCurrentUser() error {
+	data := map[string]string{
+		"mid":  b.loginInfo.UID,
+		"csrf": b.loginInfo.Csrf,
+	}
+	headers := b.loginInfo.Headers
+	headers["Referer"] = "https://space.bilibili.com/3213445" + b.loginInfo.UID
+	resp, err := b.POST(apiURL["getInfo"], data, headers)
+	if err != nil {
+		return err
+	}
+	var bresp struct {
+		Status bool     `json:"status"`
+		Data   UserInfo `json:"data"`
+	}
+	if err := JSONProc(resp, &bresp); err != nil {
+		return err
+	}
+	b.user = bresp.Data
+	return nil
 }
 
 func (b *BService) queryReward() ([]bool, int, error) {
@@ -123,7 +166,7 @@ func (b *BService) getSubmitVideo() ([]float64, error) {
 		}
 		resp, err := b.GET(apiURL["getSubmitVideos"], params, nil)
 		if err != nil {
-			fmt.Printf("%v", err)
+			b.logger.Printf("%v", err)
 			continue
 		}
 		var bresp struct {
@@ -134,7 +177,7 @@ func (b *BService) getSubmitVideo() ([]float64, error) {
 			} `json:"data"`
 		}
 		if err := JSONProc(resp, &bresp); err != nil {
-			fmt.Printf("%v", err)
+			b.logger.Printf("%v", err)
 			continue
 		}
 		for _, val := range bresp.Data.Vlist {
