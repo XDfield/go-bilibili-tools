@@ -47,7 +47,9 @@ func request(url, method, query string) (req *http.Request, err error) {
 	case "GET":
 		// get
 		req, err = http.NewRequest("GET", url, nil)
-		req.URL.RawQuery = query
+		if query != "" {
+			req.URL.RawQuery = query
+		}
 	case "POST":
 		// post
 		req, err = http.NewRequest("POST", url, strings.NewReader(query))
@@ -70,6 +72,9 @@ func JSONProc(body *http.Response, container interface{}) error {
 }
 
 func encodeSign(params map[string]string, secret string) string {
+	if params == nil {
+		return ""
+	}
 	query := httpBuildQuery(params)
 	h := md5.New()
 	h.Write([]byte(query + secret))

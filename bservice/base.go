@@ -12,19 +12,6 @@ const (
 	cookieFileName = "cookie"
 )
 
-// var apiURL = map[string]string{
-// 	"login":           "https://passport.bilibili.com/api/v2/oauth2/login",
-// 	"getKey":          "https://passport.bilibili.com/api/oauth2/getKey",
-// 	"share":           "https://app.bilibili.com/x/v2/view/share/add",
-// 	"following":       "https://api.bilibili.com/x/relation/followings",
-// 	"getSubmitVideos": "https://space.bilibili.com/ajax/member/getSubmitVideos",
-// 	"watchAv":         "https://api.bilibili.com/x/report/web/heartbeat",
-// 	"reward":          "https://account.bilibili.com/home/reward",
-// 	"giveCoin":        "https://api.bilibili.com/x/web-interface/coin/add",
-// 	"view":            "https://api.bilibili.com/x/web-interface/view",
-// 	"getInfo":         "https://space.bilibili.com/ajax/member/GetInfo",
-// }
-
 // BURL urls
 type BURL struct {
 	Login        string

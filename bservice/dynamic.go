@@ -22,7 +22,7 @@ func (b *BService) showDynamic() error {
 	if err != nil {
 		return err
 	}
-	if unread < 0 {
+	if unread <= 0 {
 		return nil
 	}
 	resp, err := b.GET(b.urls.Dynamic, nil, b.loginInfo.Headers)
@@ -39,7 +39,7 @@ func (b *BService) showDynamic() error {
 					MID       int    `json:"mid"`
 					Author    string `json:"author"`
 					Coins     int    `json:"coins"`
-					Create    string `json:"string"`
+					Create    string `json:"create"`
 					Desc      string `json:"description"`
 					Duration  string `json:"duration"`
 					Favorites int    `json:"favorites"`
@@ -66,7 +66,7 @@ func (b *BService) showDynamic() error {
 				Count int `json:"count"`
 				Num   int `json:"num"`
 				Size  int `json:"size"`
-			}
+			} `json:"page"`
 		} `json:"data"`
 	}
 	if err := JSONProc(resp, &bresp); err != nil {
@@ -77,5 +77,6 @@ func (b *BService) showDynamic() error {
 		message := content.Addition.Author + " 在" + content.Addition.Create + "更新了《" + content.Addition.Title + "》"
 		b.logger.Println(message)
 	}
+
 	return nil
 }
