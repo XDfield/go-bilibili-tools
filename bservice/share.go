@@ -1,6 +1,7 @@
 package bservice
 
 import (
+	"errors"
 	"sync"
 )
 
@@ -53,9 +54,12 @@ func (b *BService) share(aid string) error {
 		"platform":   "android",
 		"ts":         GetCurrentTime(),
 	}
-	resp, err := b.POST(b.urls.Share, data, headers)
-	if err != nil {
+	state := stateStruct{}
+	if err := b.client.PostAndDecode(b.urls.Share, data, headers, &state); err != nil {
 		return err
 	}
-	return CheckCode(resp)
+	if state.Code != 0 {
+		return errors.New(state.Message)
+	}
+	return nil
 }

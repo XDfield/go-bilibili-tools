@@ -48,7 +48,7 @@ func (b *BService) giveCoin(aid string) error {
 		"cross_domain": "true",
 		"csrf":         b.loginInfo.Csrf,
 	}
-	resp, err := b.POST(b.urls.GiveCoin, data, headers)
+	resp, err := b.client.POST(b.urls.GiveCoin, data, headers)
 	if err != nil {
 		return err
 	}

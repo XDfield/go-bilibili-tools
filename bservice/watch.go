@@ -1,6 +1,7 @@
 package bservice
 
 import (
+	"errors"
 	"sync"
 )
 
@@ -46,9 +47,12 @@ func (b *BService) watch(aid, cid string) error {
 		"dt":          "2",
 		"play_type":   "1",
 	}
-	resp, err := b.POST(b.urls.WatchAv, data, headers)
-	if err != nil {
+	state := stateStruct{}
+	if err := b.client.PostAndDecode(b.urls.Share, data, headers, &state); err != nil {
 		return err
 	}
-	return CheckCode(resp)
+	if state.Code != 0 {
+		return errors.New(state.Message)
+	}
+	return nil
 }

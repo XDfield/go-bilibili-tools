@@ -16,16 +16,40 @@ const (
 )
 
 // GET get请求
-func (b *BService) GET(url string, params map[string]string, headers map[string]string) (*http.Response, error) {
-	return b.open(url, "GET", encodeSign(params, encryptSecret), headers)
+func (c *BClient) GET(url string, params map[string]string, headers map[string]string) (*http.Response, error) {
+	return c.open(url, "GET", encodeSign(params, encryptSecret), headers)
+}
+
+// GetAndDecode get请求并解析json响应内容
+func (c *BClient) GetAndDecode(url string, params map[string]string, headers map[string]string, container interface{}) error {
+	resp, err := c.GET(url, params, headers)
+	if err != nil {
+		return err
+	}
+	if err := JSONProc(resp, container); err != nil {
+		return err
+	}
+	return nil
 }
 
 // POST post请求
-func (b *BService) POST(url string, data map[string]string, headers map[string]string) (*http.Response, error) {
-	return b.open(url, "POST", encodeSign(data, encryptSecret), headers)
+func (c *BClient) POST(url string, data map[string]string, headers map[string]string) (*http.Response, error) {
+	return c.open(url, "POST", encodeSign(data, encryptSecret), headers)
 }
 
-func (b *BService) open(url, method, query string, headers map[string]string) (*http.Response, error) {
+// PostAndDecode post请求并解析json响应内容
+func (c *BClient) PostAndDecode(url string, data map[string]string, headers map[string]string, container interface{}) error {
+	resp, err := c.POST(url, data, headers)
+	if err != nil {
+		return err
+	}
+	if err := JSONProc(resp, container); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *BClient) open(url, method, query string, headers map[string]string) (*http.Response, error) {
 	req, err := request(url, method, query)
 	if err != nil {
 		return nil, err
@@ -35,7 +59,7 @@ func (b *BService) open(url, method, query string, headers map[string]string) (*
 		req.Header.Set(k, v)
 	}
 	// request
-	resp, err := b.client.Do(req)
+	resp, err := c.Do(req)
 	if err != nil {
 		return nil, err
 	}

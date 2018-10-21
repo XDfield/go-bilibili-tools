@@ -6,30 +6,6 @@ import (
 	"fmt"
 )
 
-// LoginInfo 登陆信息
-type LoginInfo struct {
-	Username  string
-	Password  string
-	Csrf      string
-	UID       string
-	Cookies   string
-	Headers   map[string]string
-	AccessKey string
-}
-
-// CookieData cookie信息
-type CookieData struct {
-	TokenInfo struct {
-		AccessToken string `json:"access_token"`
-	} `json:"token_info"`
-	CookieInfo struct {
-		Cookies []struct {
-			Name  string `json:"name"`
-			Value string `json:"value"`
-		} `json:"cookies"`
-	} `json:"cookie_info"`
-}
-
 // Login 登陆
 func (b *BService) Login(relogin bool) error {
 	if err := b.getLoginInfo(relogin); err != nil {
@@ -65,14 +41,10 @@ func (b *BService) getLoginInfo(relogin bool) error {
 			"password": encryptPw,
 			"username": b.loginInfo.Username,
 		}
-		resp, err := b.POST(b.urls.Login, params, nil)
-		if err != nil {
-			return err
-		}
 		var bresp struct {
 			Data CookieData `json:"data"`
 		}
-		if err := JSONProc(resp, &bresp); err != nil {
+		if err := b.client.PostAndDecode(b.urls.Login, params, nil, &bresp); err != nil {
 			return errors.New("登陆失败, 请检查账号密码是否输入正确")
 		}
 		loginInfo := ParseCookies(&bresp.Data)
@@ -96,17 +68,13 @@ func (b *BService) getEncryptPw(data []byte) (string, error) {
 	params := map[string]string{
 		"appkey": appKey,
 	}
-	resp, err := b.POST(b.urls.EncryptKey, params, nil)
-	if err != nil {
-		return "", err
-	}
 	var bresp struct {
 		Data struct {
 			Hash string `json:"hash"`
 			Key  string `json:"key"`
 		} `json:"data"`
 	}
-	if err := JSONProc(resp, &bresp); err != nil {
+	if err := b.client.PostAndDecode(b.urls.EncryptKey, params, nil, &bresp); err != nil {
 		return "", err
 	}
 	hash := bresp.Data.Hash

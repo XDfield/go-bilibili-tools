@@ -1,6 +1,7 @@
 package bservice
 
 import (
+	"strconv"
 	"sync"
 )
 
@@ -24,10 +25,6 @@ func (b *BService) showDynamic() error {
 	}
 	if unread <= 0 {
 		return nil
-	}
-	resp, err := b.GET(b.urls.Dynamic, nil, b.loginInfo.Headers)
-	if err != nil {
-		return err
 	}
 	var bresp struct {
 		Code int `json:"code"`
@@ -69,13 +66,17 @@ func (b *BService) showDynamic() error {
 			} `json:"page"`
 		} `json:"data"`
 	}
-	if err := JSONProc(resp, &bresp); err != nil {
+	if err := b.client.GetAndDecode(b.urls.Dynamic, nil, b.loginInfo.Headers, &bresp); err != nil {
 		return err
 	}
 	if len(bresp.Data.Feeds) > 0 {
 		content := bresp.Data.Feeds[0]
 		message := content.Addition.Author + " 在" + content.Addition.Create + "更新了《" + content.Addition.Title + "》"
 		b.logger.Println(message)
+		if err := b.replay("(=・ω・=)", strconv.Itoa(content.Addition.AID)); err != nil {
+			return err
+		}
+		b.logger.Println("评论发送成功")
 	}
 
 	return nil

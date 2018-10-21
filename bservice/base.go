@@ -2,7 +2,6 @@ package bservice
 
 import (
 	"log"
-	"net/http"
 	"os"
 	"sync"
 )
@@ -12,35 +11,9 @@ const (
 	cookieFileName = "cookie"
 )
 
-// BURL urls
-type BURL struct {
-	Login        string
-	Share        string
-	WatchAv      string
-	GiveCoin     string
-	EncryptKey   string
-	Following    string
-	SubmitVideos string
-	Reward       string
-	VideoView    string
-	UserInfo     string
-	UnreadCount  string
-	Dynamic      string
-}
-
-// BService 基础的服务
-type BService struct {
-	client    *http.Client
-	loginInfo LoginInfo
-	videoList []float64
-	logger    *log.Logger
-	user      UserInfo
-	urls      BURL
-}
-
 // Init 初始化服务
 func (b *BService) Init() {
-	b.client = &http.Client{}
+	b.client = &BClient{}
 	b.logger = log.New(os.Stderr, "[BiliBili-Tools] ", log.LstdFlags)
 	b.setURLs()
 }
@@ -68,5 +41,6 @@ func (b *BService) setURLs() {
 		UserInfo:     "https://space.bilibili.com/ajax/member/GetInfo",
 		UnreadCount:  "https://api.bilibili.com/x/feed/unread/count?type=0",
 		Dynamic:      "https://api.bilibili.com/x/feed/pull?ps=1&type=0",
+		Replay:       "https://api.bilibili.com/x/v2/reply/add",
 	}
 }

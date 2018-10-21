@@ -6,55 +6,40 @@ import (
 	"strconv"
 )
 
-type videoView struct {
-	Code int `json:"code"`
-	Data struct {
-		Aid   int    `json:"aid"`
-		Cid   int    `json:"cid"`
-		Desc  string `json:"desc"`
-		Owner struct {
-			Name string `json:"name"`
-			Mid  int    `json:"mid"`
-		} `json:"owner"`
-		Stat struct {
-			Coin    int `json:"coin"`
-			Danmuku int `json:"danmuku"`
-			Dislike int `json:"dislike"`
-			Like    int `json:"like"`
-			Share   int `json:"share"`
-			View    int `json:"view"`
-		} `json:"stat"`
-		Tid   int    `json:"tid"`
-		Title string `json:"title"`
-		TName string `json:"tname"`
-	}
-}
-
-// UserInfo 用户信息
-type UserInfo struct {
-	Birthday  string `json:"birthday"`
-	Im9Sign   string `json:"im9_sign"`
-	LevelInfo struct {
-		CurrentLevel int `json:"current_level"`
-	} `json:"level_info"`
-	MID     int    `json:"mid"`
-	Name    string `json:"name"`
-	Rank    int    `json:"rank"`
-	RegTime int    `json:"regtime"`
-	Sex     string `json:"sex"`
-	Sign    string `json:"sign"`
-	Vip     struct {
-		VipStatus int `json:"vipStatus"`
-		VipType   int `json:"vipType"`
-	} `json:"vip"`
-}
-
 func (b *BService) getRandAid() (string, error) {
 	videoList := b.videoList
 	for ; len(videoList) == 0; videoList = b.videoList {
 		WaitSeconds(2)
 	}
 	return Float64ToString(videoList[rand.Intn(len(videoList))]), nil
+}
+
+func (b *BService) replay(message string, mid string) error {
+	data := map[string]string{
+		"oid":     mid,
+		"type":    "1",
+		"message": message,
+		"plat":    "1",
+		"jsonp":   "jsonp",
+		"csrf":    b.loginInfo.Csrf,
+	}
+	headers := b.loginInfo.Headers
+	headers["Referer"] = "https://www.bilibili.com/video/av" + mid
+	var bresp struct {
+		Code int `json:"code"`
+		Data struct {
+			RPID    int    `json:"rpid"`
+			RPIDStr string `json:"rpid_str"`
+		} `json:"data"`
+		Message string `json:"message"`
+	}
+	if err := b.client.PostAndDecode(b.urls.Replay, data, headers, &bresp); err != nil {
+		return err
+	}
+	if bresp.Code != 0 {
+		return errors.New("评论发送失败")
+	}
+	return nil
 }
 
 func (b *BService) loadVideoList() {
@@ -70,13 +55,8 @@ func (b *BService) getView(aid string) (*videoView, error) {
 	params := map[string]string{
 		"aid": aid,
 	}
-	resp, err := b.GET(b.urls.VideoView, params, nil)
-	if err != nil {
-		return nil, err
-	}
 	view := videoView{}
-	if err := JSONProc(resp, &view); err != nil {
-		b.logger.Printf("%v", err)
+	if err := b.client.GetAndDecode(b.urls.VideoView, params, nil, &view); err != nil {
 		return nil, err
 	}
 	return &view, nil
@@ -89,15 +69,11 @@ func (b *BService) getCurrentUser() error {
 	}
 	headers := b.loginInfo.Headers
 	headers["Referer"] = "https://space.bilibili.com/3213445" + b.loginInfo.UID
-	resp, err := b.POST(b.urls.UserInfo, data, headers)
-	if err != nil {
-		return err
-	}
 	var bresp struct {
 		Status bool     `json:"status"`
 		Data   UserInfo `json:"data"`
 	}
-	if err := JSONProc(resp, &bresp); err != nil {
+	if err := b.client.PostAndDecode(b.urls.UserInfo, data, headers, &bresp); err != nil {
 		return err
 	}
 	b.user = bresp.Data
@@ -107,10 +83,6 @@ func (b *BService) getCurrentUser() error {
 func (b *BService) queryReward() ([]bool, int, error) {
 	headers := b.loginInfo.Headers
 	headers["Referer"] = "https://account.bilibili.com/account/home"
-	resp, err := b.GET(b.urls.Reward, nil, headers)
-	if err != nil {
-		return nil, 0, err
-	}
 	var bresp struct {
 		Data struct {
 			Login   bool `json:"login"`
@@ -119,24 +91,20 @@ func (b *BService) queryReward() ([]bool, int, error) {
 			CoinsAv int  `json:"coins_av"`
 		} `json:"data"`
 	}
-	if err := JSONProc(resp, &bresp); err != nil {
+	if err := b.client.GetAndDecode(b.urls.Reward, nil, headers, &bresp); err != nil {
 		return nil, 0, err
 	}
 	return []bool{bresp.Data.Login, bresp.Data.WatchAv, bresp.Data.ShareAv}, bresp.Data.CoinsAv, nil
 }
 
 func (b *BService) getUnreadCount() (int, error) {
-	resp, err := b.GET(b.urls.UnreadCount, nil, b.loginInfo.Headers)
-	if err != nil {
-		return 0, err
-	}
 	var bresp struct {
 		Code int `json:"code"`
 		Data struct {
 			All int `json:"all"`
 		} `json:"data"`
 	}
-	if err := JSONProc(resp, &bresp); err != nil {
+	if err := b.client.GetAndDecode(b.urls.UnreadCount, nil, b.loginInfo.Headers, &bresp); err != nil {
 		return 0, err
 	}
 	return bresp.Data.All, nil
@@ -149,10 +117,6 @@ func (b *BService) getAttention() ([]float64, error) {
 		"ps":    "50",
 		"order": "desc",
 	}
-	resp, err := b.GET(b.urls.Following, params, b.loginInfo.Headers)
-	if err != nil {
-		return nil, err
-	}
 	var bresp struct {
 		Data struct {
 			List []struct {
@@ -160,7 +124,7 @@ func (b *BService) getAttention() ([]float64, error) {
 			} `json:"list"`
 		} `json:"data"`
 	}
-	if err := JSONProc(resp, &bresp); err != nil {
+	if err := b.client.GetAndDecode(b.urls.Following, params, b.loginInfo.Headers, &bresp); err != nil {
 		return nil, err
 	}
 	for _, val := range bresp.Data.List {
@@ -181,11 +145,6 @@ func (b *BService) getSubmitVideo() ([]float64, error) {
 			"pagesize": "100",
 			"tid":      "0",
 		}
-		resp, err := b.GET(b.urls.SubmitVideos, params, nil)
-		if err != nil {
-			b.logger.Printf("%v", err)
-			continue
-		}
 		var bresp struct {
 			Data struct {
 				Vlist []struct {
@@ -193,8 +152,7 @@ func (b *BService) getSubmitVideo() ([]float64, error) {
 				} `json:"vlist"`
 			} `json:"data"`
 		}
-		if err := JSONProc(resp, &bresp); err != nil {
-			b.logger.Printf("%v", err)
+		if err := b.client.GetAndDecode(b.urls.SubmitVideos, params, nil, &bresp); err != nil {
 			continue
 		}
 		for _, val := range bresp.Data.Vlist {
