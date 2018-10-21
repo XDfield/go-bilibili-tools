@@ -5,10 +5,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -67,16 +66,16 @@ func DeParseCookies(cookieInfo map[string]string) LoginInfo {
 }
 
 // CheckCode 检查状态响应
-func CheckCode(resp *http.Response) error {
-	state := stateStruct{}
-	if err := JSONProc(resp, &state); err != nil {
-		return err
-	}
-	if state.Code != 0 {
-		return errors.New(state.Message)
-	}
-	return nil
-}
+// func CheckCode(resp *http.Response) error {
+// 	state := stateStruct{}
+// 	if err := JSONProc(resp, &state); err != nil {
+// 		return err
+// 	}
+// 	if state.Code != 0 {
+// 		return errors.New(state.Message)
+// 	}
+// 	return nil
+// }
 
 // WaitHours 等待 h 小时
 func WaitHours(h int) {
@@ -113,10 +112,10 @@ func SaveCookieToFile(loginInfo *LoginInfo, filename string) error {
 	fileObj, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	defer fileObj.Close()
 	if err != nil {
-		return err
+		return fmt.Errorf("<SaveCookieToFile>: %v", err)
 	}
 	if _, err := io.WriteString(fileObj, contents); err != nil {
-		return err
+		return fmt.Errorf("<SaveCookieToFile>: %v", err)
 	}
 	return nil
 }
@@ -126,11 +125,11 @@ func LoadCookieFromFile(filename string) (map[string]string, error) {
 	fileObj, err := os.Open(filename)
 	defer fileObj.Close()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<LoadCookieFromFile>: %v", err)
 	}
 	contents, err := ioutil.ReadAll(fileObj)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<LoadCookieFromFile>: %v", err)
 	}
 	values := strings.Split(string(contents), "\n")
 	cookieInfo := make(map[string]string)

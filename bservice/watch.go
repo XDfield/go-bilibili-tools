@@ -1,7 +1,7 @@
 package bservice
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -12,16 +12,16 @@ func (b *BService) WatchService(wg *sync.WaitGroup) {
 	for {
 		aid, err := b.getRandAid()
 		if err != nil {
-			b.logger.Printf("获取aid失败: %v\n", err)
+			b.logger.Printf("<WatchService>: %v\n", err)
 			continue
 		}
 		view, err := b.getView(aid)
 		if err != nil {
-			b.logger.Printf("获取视频信息失败: %v\n", err)
+			b.logger.Printf("<WatchService>: %v\n", err)
 			continue
 		}
 		if err := b.watch(aid, string(view.Data.Cid)); err != nil {
-			b.logger.Printf("观看视频失败: %v\n", err)
+			b.logger.Printf("<WatchService>: %v\n", err)
 			continue
 		}
 		b.logger.Printf("成功观看视频: (av%v) %v\n", aid, view.Data.Title)
@@ -48,11 +48,11 @@ func (b *BService) watch(aid, cid string) error {
 		"play_type":   "1",
 	}
 	state := stateStruct{}
-	if err := b.client.PostAndDecode(b.urls.Share, data, headers, &state); err != nil {
-		return err
+	if err := b.client.PostAndDecode(b.urls.WatchAv, data, headers, &state); err != nil {
+		return fmt.Errorf("<watch>: %v", err)
 	}
 	if state.Code != 0 {
-		return errors.New(state.Message)
+		return fmt.Errorf("<watch>: %s", state.Message)
 	}
 	return nil
 }

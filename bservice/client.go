@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
@@ -24,10 +25,10 @@ func (c *BClient) GET(url string, params map[string]string, headers map[string]s
 func (c *BClient) GetAndDecode(url string, params map[string]string, headers map[string]string, container interface{}) error {
 	resp, err := c.GET(url, params, headers)
 	if err != nil {
-		return err
+		return fmt.Errorf("<GetAndDecode>: %v", err)
 	}
 	if err := JSONProc(resp, container); err != nil {
-		return err
+		return fmt.Errorf("<GetAndDecode>: %v", err)
 	}
 	return nil
 }
@@ -41,10 +42,10 @@ func (c *BClient) POST(url string, data map[string]string, headers map[string]st
 func (c *BClient) PostAndDecode(url string, data map[string]string, headers map[string]string, container interface{}) error {
 	resp, err := c.POST(url, data, headers)
 	if err != nil {
-		return err
+		return fmt.Errorf("<PostAndDecode>: %v", err)
 	}
 	if err := JSONProc(resp, container); err != nil {
-		return err
+		return fmt.Errorf("<PostAndDecode>: %v", err)
 	}
 	return nil
 }
@@ -52,7 +53,7 @@ func (c *BClient) PostAndDecode(url string, data map[string]string, headers map[
 func (c *BClient) open(url, method, query string, headers map[string]string) (*http.Response, error) {
 	req, err := request(url, method, query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<open>: %v", err)
 	}
 	// set headers
 	for k, v := range headers {
@@ -61,7 +62,7 @@ func (c *BClient) open(url, method, query string, headers map[string]string) (*h
 	// request
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<open>: %v", err)
 	}
 	return resp, nil
 }
@@ -80,7 +81,7 @@ func request(url, method, query string) (req *http.Request, err error) {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<request>: %v", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
 	return
@@ -90,7 +91,7 @@ func request(url, method, query string) (req *http.Request, err error) {
 func JSONProc(body *http.Response, container interface{}) error {
 	defer body.Body.Close()
 	if err := json.NewDecoder(body.Body).Decode(container); err != nil {
-		return err
+		return fmt.Errorf("<JSONProc>: %v", err)
 	}
 	return nil
 }

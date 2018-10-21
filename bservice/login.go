@@ -9,15 +9,15 @@ import (
 // Login 登陆
 func (b *BService) Login(relogin bool) error {
 	if err := b.getLoginInfo(relogin); err != nil {
-		return err
+		return fmt.Errorf("<Login>: %v", err)
 	}
 
 	if err := SaveCookieToFile(&b.loginInfo, cookieFileName); err != nil {
-		b.logger.Println("本地cookie保存失败")
+		b.logger.Printf("本地cookie保存失败: %v\n", err)
 	}
 
 	if err := b.getCurrentUser(); err != nil {
-		return errors.New("获取用户信息失败, 请检查账号密码是否输入正确")
+		return fmt.Errorf("<Login>: %v", err)
 	}
 
 	b.logger.Printf("你好呀 %s\n", b.user.Name)
@@ -34,7 +34,7 @@ func (b *BService) getLoginInfo(relogin bool) error {
 
 		encryptPw, err := b.getEncryptPw([]byte(b.loginInfo.Password))
 		if err != nil {
-			return err
+			return fmt.Errorf("<getLoginInfo>: %v", err)
 		}
 		params := map[string]string{
 			"appkey":   appKey,
@@ -75,7 +75,7 @@ func (b *BService) getEncryptPw(data []byte) (string, error) {
 		} `json:"data"`
 	}
 	if err := b.client.PostAndDecode(b.urls.EncryptKey, params, nil, &bresp); err != nil {
-		return "", err
+		return "", fmt.Errorf("<getEncryptPw>: %v", err)
 	}
 	hash := bresp.Data.Hash
 	key := bresp.Data.Key

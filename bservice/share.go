@@ -1,7 +1,7 @@
 package bservice
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -17,16 +17,16 @@ func (b *BService) ShareService(wg *sync.WaitGroup) {
 	for {
 		aid, err := b.getRandAid()
 		if err != nil {
-			b.logger.Printf("%v", err)
+			b.logger.Printf("<ShareService>: %v\n", err)
 			continue
 		}
 		if err := b.share(aid); err != nil {
-			b.logger.Printf("分享视频失败: %v\n", err)
+			b.logger.Printf("<ShareService>: %v\n", err)
 			continue
 		} else {
 			view, err := b.getView(aid)
 			if err != nil {
-				b.logger.Printf("获取视频信息失败: av%v\n", aid)
+				b.logger.Printf("<ShareService>: %v\n", err)
 			} else {
 				b.logger.Printf("成功分享视频: (av%v) %v\n", aid, view.Data.Title)
 			}
@@ -56,10 +56,10 @@ func (b *BService) share(aid string) error {
 	}
 	state := stateStruct{}
 	if err := b.client.PostAndDecode(b.urls.Share, data, headers, &state); err != nil {
-		return err
+		return fmt.Errorf("<share>: %v", err)
 	}
 	if state.Code != 0 {
-		return errors.New(state.Message)
+		return fmt.Errorf("<share>: %s", state.Message)
 	}
 	return nil
 }

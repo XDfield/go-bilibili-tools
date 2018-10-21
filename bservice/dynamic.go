@@ -1,6 +1,7 @@
 package bservice
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 )
@@ -11,7 +12,7 @@ func (b *BService) DynamicService(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		if err := b.showDynamic(); err != nil {
-			b.logger.Printf("%v\n", err)
+			b.logger.Printf("<DynamicService>: %v\n", err)
 			continue
 		}
 		WaitSeconds(60)
@@ -21,7 +22,7 @@ func (b *BService) DynamicService(wg *sync.WaitGroup) {
 func (b *BService) showDynamic() error {
 	unread, err := b.getUnreadCount()
 	if err != nil {
-		return err
+		return fmt.Errorf("<showDynamic>: %v", err)
 	}
 	if unread <= 0 {
 		return nil
@@ -67,14 +68,14 @@ func (b *BService) showDynamic() error {
 		} `json:"data"`
 	}
 	if err := b.client.GetAndDecode(b.urls.Dynamic, nil, b.loginInfo.Headers, &bresp); err != nil {
-		return err
+		return fmt.Errorf("<showDynamic>: %v", err)
 	}
 	if len(bresp.Data.Feeds) > 0 {
 		content := bresp.Data.Feeds[0]
 		message := content.Addition.Author + " 在" + content.Addition.Create + "更新了《" + content.Addition.Title + "》"
 		b.logger.Println(message)
 		if err := b.replay("(=・ω・=)", strconv.Itoa(content.Addition.AID)); err != nil {
-			return err
+			return fmt.Errorf("<showDynamic>: %v", err)
 		}
 		b.logger.Println("评论发送成功")
 	}

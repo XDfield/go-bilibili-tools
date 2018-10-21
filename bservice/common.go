@@ -1,7 +1,7 @@
 package bservice
 
 import (
-	"errors"
+	"fmt"
 	"math/rand"
 	"strconv"
 )
@@ -34,10 +34,10 @@ func (b *BService) replay(message string, mid string) error {
 		Message string `json:"message"`
 	}
 	if err := b.client.PostAndDecode(b.urls.Replay, data, headers, &bresp); err != nil {
-		return err
+		return fmt.Errorf("<replay>: %v", err)
 	}
 	if bresp.Code != 0 {
-		return errors.New("评论发送失败")
+		return fmt.Errorf("<replay>: %s", bresp.Message)
 	}
 	return nil
 }
@@ -51,13 +51,13 @@ func (b *BService) loadVideoList() {
 	}
 }
 
-func (b *BService) getView(aid string) (*videoView, error) {
+func (b *BService) getView(aid string) (*VideoView, error) {
 	params := map[string]string{
 		"aid": aid,
 	}
-	view := videoView{}
+	view := VideoView{}
 	if err := b.client.GetAndDecode(b.urls.VideoView, params, nil, &view); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<getView>: %v", err)
 	}
 	return &view, nil
 }
@@ -74,7 +74,7 @@ func (b *BService) getCurrentUser() error {
 		Data   UserInfo `json:"data"`
 	}
 	if err := b.client.PostAndDecode(b.urls.UserInfo, data, headers, &bresp); err != nil {
-		return err
+		return fmt.Errorf("<getCurrentUser>: %v", err)
 	}
 	b.user = bresp.Data
 	return nil
@@ -92,7 +92,7 @@ func (b *BService) queryReward() ([]bool, int, error) {
 		} `json:"data"`
 	}
 	if err := b.client.GetAndDecode(b.urls.Reward, nil, headers, &bresp); err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("<queryReward>: %v", err)
 	}
 	return []bool{bresp.Data.Login, bresp.Data.WatchAv, bresp.Data.ShareAv}, bresp.Data.CoinsAv, nil
 }
@@ -105,7 +105,7 @@ func (b *BService) getUnreadCount() (int, error) {
 		} `json:"data"`
 	}
 	if err := b.client.GetAndDecode(b.urls.UnreadCount, nil, b.loginInfo.Headers, &bresp); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("<getUnreadCount>: %v", err)
 	}
 	return bresp.Data.All, nil
 }
@@ -125,7 +125,7 @@ func (b *BService) getAttention() ([]float64, error) {
 		} `json:"data"`
 	}
 	if err := b.client.GetAndDecode(b.urls.Following, params, b.loginInfo.Headers, &bresp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<getAttention>: %v", err)
 	}
 	for _, val := range bresp.Data.List {
 		attentionList = append(attentionList, val.Mid)
@@ -136,7 +136,7 @@ func (b *BService) getAttention() ([]float64, error) {
 func (b *BService) getSubmitVideo() ([]float64, error) {
 	attentionList, err := b.getAttention()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("<getSubmitVideo>: %v", err)
 	}
 	videoList := make([]float64, 0, 50)
 	for _, mid := range attentionList {
@@ -160,7 +160,7 @@ func (b *BService) getSubmitVideo() ([]float64, error) {
 		}
 	}
 	if len(videoList) == 0 {
-		return nil, errors.New("获取视频信息失败")
+		return nil, fmt.Errorf("<getSubmitVideo>: 获取视频信息失败")
 	}
 	return videoList, nil
 }

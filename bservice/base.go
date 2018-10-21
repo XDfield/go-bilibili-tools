@@ -23,6 +23,7 @@ func (b *BService) LoadVideoInfo(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		b.loadVideoList()
+		// 每12小时更换一次视频列表
 		WaitHours(12)
 	}
 }

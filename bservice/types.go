@@ -48,6 +48,10 @@ type LoginInfo struct {
 	AccessKey string
 }
 
+// **********
+// Responses
+// **********
+
 // CookieData cookie信息
 type CookieData struct {
 	TokenInfo struct {
@@ -61,7 +65,8 @@ type CookieData struct {
 	} `json:"cookie_info"`
 }
 
-type videoView struct {
+// VideoView 视频信息
+type VideoView struct {
 	Code int `json:"code"`
 	Data struct {
 		Aid   int    `json:"aid"`
