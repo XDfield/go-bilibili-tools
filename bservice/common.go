@@ -14,6 +14,13 @@ func (b *BService) getRandAid() (string, error) {
 	return Float64ToString(videoList[rand.Intn(len(videoList))]), nil
 }
 
+func (b *BService) getRandReplay() string {
+	if len(b.Replays) == 0 {
+		return "(=・ω・=)"
+	}
+	return b.Replays[rand.Intn(len(b.Replays))]
+}
+
 func (b *BService) replay(message string, mid string) error {
 	data := map[string]string{
 		"oid":     mid,

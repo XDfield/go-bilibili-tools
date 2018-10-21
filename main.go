@@ -15,6 +15,8 @@ func main() {
 		fmt.Printf("%v", err)
 		return
 	}
+	// 默认评论
+	bservice.Replays = []string{"第一??", "(=・ω・=)", "emmmm"}
 	// 启动服务
 	wg := sync.WaitGroup{}
 	wg.Add(5)

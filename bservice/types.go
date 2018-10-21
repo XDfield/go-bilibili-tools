@@ -30,6 +30,7 @@ type BService struct {
 	logger    *log.Logger
 	user      UserInfo
 	urls      BURL
+	Replays   []string
 }
 
 // BClient 处理请求的对象

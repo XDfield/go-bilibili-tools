@@ -15,7 +15,7 @@ func (b *BService) DynamicService(wg *sync.WaitGroup) {
 			b.logger.Printf("<DynamicService>: %v\n", err)
 			continue
 		}
-		WaitSeconds(60)
+		WaitSeconds(30)
 	}
 }
 
