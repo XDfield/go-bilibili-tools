@@ -33,13 +33,13 @@
 }
 ```
 
-> ShareServerEnable ~ DynamicServerEnable: 是否开启服务
-> BarkKey: Bark 推送 key 不填则不推送
-> DynamicCheckTime: 关注更新检查间隔(单位秒)
-> DefaultReplay: 默认评论内容
-> OnlySpecialAttentions: 是否只评论特殊关注列表
-> SpecialAttentions: 特殊关注列表
-> mid: up 主的 mid
+> ShareServerEnable ~ DynamicServerEnable: 是否开启服务  
+> BarkKey: Bark 推送 key 不填则不推送  
+> DynamicCheckTime: 关注更新检查间隔(单位秒)  
+> DefaultReplay: 默认评论内容  
+> OnlySpecialAttentions: 是否只评论特殊关注列表  
+> SpecialAttentions: 特殊关注列表  
+> mid: up 主的 mid  
 > replay: 评论内容
 
 ```bash
