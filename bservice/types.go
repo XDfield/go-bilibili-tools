@@ -28,9 +28,9 @@ type BService struct {
 	loginInfo LoginInfo
 	videoList []float64
 	logger    *log.Logger
+	config    *Config
 	user      UserInfo
 	urls      BURL
-	Replays   []string
 }
 
 // BClient 处理请求的对象

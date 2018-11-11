@@ -3,7 +3,6 @@ package bservice
 import (
 	"log"
 	"os"
-	"sync"
 )
 
 const (
@@ -15,12 +14,15 @@ const (
 func (b *BService) Init() {
 	b.client = &BClient{}
 	b.logger = log.New(os.Stderr, "[BiliBili-Tools] ", log.LstdFlags)
+	b.config = &Config{}
+	if err := b.parseConfig("./config.json"); err != nil {
+		b.logger.Panic(err)
+	}
 	b.setURLs()
 }
 
 // LoadVideoInfo 读取视频列表
-func (b *BService) LoadVideoInfo(wg *sync.WaitGroup) {
-	defer wg.Done()
+func (b *BService) LoadVideoInfo() {
 	for {
 		b.loadVideoList()
 		// 每12小时更换一次视频列表

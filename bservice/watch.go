@@ -7,8 +7,11 @@ import (
 
 // WatchService 观看服务
 func (b *BService) WatchService(wg *sync.WaitGroup) {
-	b.logger.Println("启动视频观看服务")
 	defer wg.Done()
+	if !b.config.WatchServerEnable {
+		return
+	}
+	b.logger.Println("启动视频观看服务")
 	for {
 		aid, err := b.getRandAid()
 		if err != nil {

@@ -12,8 +12,11 @@ type failState struct {
 
 // ShareService 视频分享服务
 func (b *BService) ShareService(wg *sync.WaitGroup) {
-	b.logger.Println("启动视频分享服务")
 	defer wg.Done()
+	if !b.config.ShareServerEnable {
+		return
+	}
+	b.logger.Println("启动视频分享服务")
 	for {
 		aid, err := b.getRandAid()
 		if err != nil {

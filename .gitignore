@@ -1,5 +1,8 @@
 # cookie file
 cookie
 
+# config
+config.json
+
 # editor
 .vscode

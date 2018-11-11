@@ -7,8 +7,11 @@ import (
 
 // CoinService 投币服务
 func (b *BService) CoinService(wg *sync.WaitGroup) {
-	b.logger.Println("启动投币服务")
 	defer wg.Done()
+	if !b.config.CoinServerEnable {
+		return
+	}
+	b.logger.Println("启动投币服务")
 	for {
 		_, coinExp, err := b.queryReward()
 		if err != nil {

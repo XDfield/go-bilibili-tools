@@ -12,6 +12,27 @@
 
 #### 使用
 
+先在同目录创建配置文件 config.json , 内容如下:
+
+```json
+{
+  "ShareServerEnable": true,  # 是否开启服务
+  "WatchServerEnable": true,
+  "CoinServerEnable": true,
+  "DynamicServerEnable": true,
+  "BarkKey": "",  # Bark 推送 key
+  "DynamicCheckTime": 15,  # 关注更新检查间隔(单位秒)
+  "DefaultReplay": "(=・ω・=)",  # 默认评论内容
+  "OnlySpecialAttentions": false,  # 是否只评论特殊关注列表
+  "SpecialAttentions": [  # 特殊关注列表
+    {
+      "mid": 325341848,  # up主的 mid
+      "replay": "阿一我来啦~"  # 评论内容
+    }
+  ]
+}
+```
+
 ```bash
 # 安装
 go get github.com/XDfield/go-bilibili-tools
@@ -22,4 +43,4 @@ go install
 ./go-bilibili-tools
 ```
 
-> 第一次使用会要求输入账号密码， 登陆成功后会保存 cookie 到本地
+> 第一次使用会要求输入账号密码， 登陆成功后会保存 cookie 到同目录下

@@ -8,14 +8,17 @@ import (
 
 // DynamicService 关注推送服务
 func (b *BService) DynamicService(wg *sync.WaitGroup) {
-	b.logger.Println("启动关注推送服务")
 	defer wg.Done()
+	if !b.config.DynamicServerEnable {
+		return
+	}
+	b.logger.Println("启动关注推送服务")
 	for {
 		if err := b.showDynamic(); err != nil {
 			b.logger.Printf("<DynamicService>: %v\n", err)
 			continue
 		}
-		WaitSeconds(30)
+		WaitSeconds(b.config.DynamicCheckTime)
 	}
 }
 
@@ -74,9 +77,33 @@ func (b *BService) showDynamic() error {
 		content := bresp.Data.Feeds[0]
 		message := content.Addition.Author + " 在" + content.Addition.Create + "更新了《" + content.Addition.Title + "》"
 		b.logger.Println(message)
-		if err := b.replay("(=・ω・=)", strconv.Itoa(content.Addition.AID)); err != nil {
+		isSa := false
+		replay := b.config.DefaultReplay
+		for _, sa := range b.config.SpecialAttentions {
+			if content.Addition.MID == sa.MID {
+				isSa = true
+				replay = sa.Replay
+				break
+			}
+		}
+		if !(b.config.OnlySpecialAttentions && isSa) {
+			return nil
+		}
+		if err := b.replay(replay, strconv.Itoa(content.Addition.AID)); err != nil {
 			return fmt.Errorf("<showDynamic>: %v", err)
 		}
+		if isSa {
+			aid := string(content.Addition.AID)
+			if view, err := b.getView(aid); err == nil {
+				b.watch(aid, string(view.Data.Cid))
+			}
+			b.giveCoin(aid)
+			b.share(aid)
+		}
+		if err := b.barkMsg(message); err != nil {
+			b.logger.Printf("<showDynamic>: %v", err)
+		}
+
 		b.logger.Println("评论发送成功")
 	}
 

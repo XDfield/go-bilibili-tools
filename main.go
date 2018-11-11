@@ -7,7 +7,13 @@ import (
 	"github.com/XDfield/go-bilibili-tools/bservice"
 )
 
+const (
+	version = "1.0.3"
+)
+
 func main() {
+	fmt.Println("版本: " + version)
+
 	bservice := bservice.BService{}
 	bservice.Init()
 	// 登陆
@@ -15,12 +21,10 @@ func main() {
 		fmt.Printf("%v", err)
 		return
 	}
-	// 默认评论
-	bservice.Replays = []string{"第一??", "(=・ω・=)", "emmmm"}
 	// 启动服务
 	wg := sync.WaitGroup{}
-	wg.Add(5)
-	go bservice.LoadVideoInfo(&wg)  // 半天读取一次视频列表
+	wg.Add(4)
+	go bservice.LoadVideoInfo()     // 半天读取一次视频列表
 	go bservice.ShareService(&wg)   // 分享
 	go bservice.WatchService(&wg)   // 观看视频
 	go bservice.CoinService(&wg)    // 投币

@@ -3,6 +3,7 @@ package bservice
 import (
 	"fmt"
 	"math/rand"
+	"net/url"
 	"strconv"
 )
 
@@ -12,13 +13,6 @@ func (b *BService) getRandAid() (string, error) {
 		WaitSeconds(2)
 	}
 	return Float64ToString(videoList[rand.Intn(len(videoList))]), nil
-}
-
-func (b *BService) getRandReplay() string {
-	if len(b.Replays) == 0 {
-		return "(=・ω・=)"
-	}
-	return b.Replays[rand.Intn(len(b.Replays))]
 }
 
 func (b *BService) replay(message string, mid string) error {
@@ -45,6 +39,24 @@ func (b *BService) replay(message string, mid string) error {
 	}
 	if bresp.Code != 0 {
 		return fmt.Errorf("<replay>: %s", bresp.Message)
+	}
+	return nil
+}
+
+func (b *BService) barkMsg(msg string) error {
+	if b.config.BarkKey == "" {
+		return nil
+	}
+	var resp struct {
+		Code    int    `json:"code"`
+		Message string `json:"nessage"`
+	}
+	url := "https://api.day.app/" + b.config.BarkKey + "/" + url.QueryEscape(msg)
+	if err := b.client.GetAndDecode(url, nil, nil, &resp); err != nil {
+		return fmt.Errorf("<barkMsg>: %v", err)
+	}
+	if resp.Code != 200 {
+		b.logger.Println(resp.Message)
 	}
 	return nil
 }
