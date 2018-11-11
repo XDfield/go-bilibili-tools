@@ -16,22 +16,31 @@
 
 ```json
 {
-  "ShareServerEnable": true,  # 是否开启服务
+  "ShareServerEnable": true,
   "WatchServerEnable": true,
   "CoinServerEnable": true,
   "DynamicServerEnable": true,
-  "BarkKey": "",  # Bark 推送 key 不填则不推送
-  "DynamicCheckTime": 15,  # 关注更新检查间隔(单位秒)
-  "DefaultReplay": "(=・ω・=)",  # 默认评论内容
-  "OnlySpecialAttentions": false,  # 是否只评论特殊关注列表
-  "SpecialAttentions": [  # 特殊关注列表
+  "BarkKey": "",
+  "DynamicCheckTime": 15,
+  "DefaultReplay": "(=・ω・=)",
+  "OnlySpecialAttentions": false,
+  "SpecialAttentions": [
     {
-      "mid": 11111,  # up主的 mid
-      "replay": "指定评论内容"  # 评论内容
+      "mid": 11111,
+      "replay": "指定评论内容"
     }
   ]
 }
 ```
+
+> ShareServerEnable ~ DynamicServerEnable: 是否开启服务
+> BarkKey: Bark 推送 key 不填则不推送
+> DynamicCheckTime: 关注更新检查间隔(单位秒)
+> DefaultReplay: 默认评论内容
+> OnlySpecialAttentions: 是否只评论特殊关注列表
+> SpecialAttentions: 特殊关注列表
+> mid: up 主的 mid
+> replay: 评论内容
 
 ```bash
 # 安装
