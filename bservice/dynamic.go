@@ -86,7 +86,7 @@ func (b *BService) showDynamic() error {
 				break
 			}
 		}
-		if !(b.config.OnlySpecialAttentions && isSa) {
+		if b.config.OnlySpecialAttentions && !isSa {
 			return nil
 		}
 		if err := b.replay(replay, strconv.Itoa(content.Addition.AID)); err != nil {

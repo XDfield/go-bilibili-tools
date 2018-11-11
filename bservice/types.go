@@ -38,6 +38,22 @@ type BClient struct {
 	http.Client
 }
 
+// Config 配置文件
+type Config struct {
+	ShareServerEnable     bool   `json:"ShareServerEnable"`
+	WatchServerEnable     bool   `json:"WatchServerEnable"`
+	CoinServerEnable      bool   `json:"CoinServerEnable"`
+	DynamicServerEnable   bool   `json:"DynamicServerEnable"`
+	BarkKey               string `json:"BarkKey"`
+	DynamicCheckTime      int    `json:"DynamicCheckTime"`
+	DefaultReplay         string `json:"DefaultReplay"`
+	OnlySpecialAttentions bool   `json:"OnlySpecialAttentions"`
+	SpecialAttentions     []struct {
+		MID    int    `json:"mid"`
+		Replay string `json:"replay"`
+	} `json:"SpecialAttentions"`
+}
+
 // LoginInfo 登陆信息
 type LoginInfo struct {
 	Username  string

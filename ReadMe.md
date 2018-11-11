@@ -20,14 +20,14 @@
   "WatchServerEnable": true,
   "CoinServerEnable": true,
   "DynamicServerEnable": true,
-  "BarkKey": "",  # Bark 推送 key
+  "BarkKey": "",  # Bark 推送 key 不填则不推送
   "DynamicCheckTime": 15,  # 关注更新检查间隔(单位秒)
   "DefaultReplay": "(=・ω・=)",  # 默认评论内容
   "OnlySpecialAttentions": false,  # 是否只评论特殊关注列表
   "SpecialAttentions": [  # 特殊关注列表
     {
-      "mid": 325341848,  # up主的 mid
-      "replay": "阿一我来啦~"  # 评论内容
+      "mid": 11111,  # up主的 mid
+      "replay": "指定评论内容"  # 评论内容
     }
   ]
 }
